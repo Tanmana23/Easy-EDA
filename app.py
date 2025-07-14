@@ -6,8 +6,6 @@ import os
 
 st.set_page_config(page_title="Agentic Data Audit Bot", layout="wide")
 st.title("Agentic Data Audit Bot")
-
-# --- Perplexity API Call Function ---
 def get_perplexity_recommendation(audit_summary):
     api_key = os.getenv("PPLX_API_KEY")
     url = "https://api.perplexity.ai/chat/completions"
@@ -34,8 +32,6 @@ def get_perplexity_recommendation(audit_summary):
         return response.json()["choices"][0]["message"]["content"]
     else:
         return f"Error from Perplexity API: {response.status_code} - {response.text}"
-
-# --- File Upload ---
 uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
 
 if uploaded_file:
@@ -43,7 +39,6 @@ if uploaded_file:
     st.write("**Preview of Data:**")
     st.dataframe(df.head())
 
-    # --- Run Data Audit ---
     if st.button("Run Data Audit"):
         st.session_state['audit_run'] = True
         st.session_state['df'] = df.copy()
@@ -62,7 +57,6 @@ if uploaded_file:
         z_scores = ((numeric_cols - numeric_cols.mean()) / numeric_cols.std()).abs()
         st.session_state['outlier_counts'] = (z_scores > 3).sum()
 
-    # --- Show Audit Results ---
     if st.session_state.get('audit_run', False):
         st.subheader("Audit Results")
         st.write("**Missing Values per Column:**")
@@ -78,7 +72,6 @@ if uploaded_file:
         st.write("**Potential Outliers (z-score > 3):**")
         st.write(st.session_state['outlier_counts'])
 
-        # --- LLM Recommendations using Perplexity ---
         if st.button("Get Recommendations"):
             audit_summary = f"""Missing values: {st.session_state['missing'].to_dict()}
 Duplicates: {st.session_state['duplicates']}
@@ -88,7 +81,6 @@ Outliers: {st.session_state['outlier_counts'].to_dict()}"""
                 recommendation = get_perplexity_recommendation(audit_summary)
                 st.markdown("**LLM Recommendations:**")
                 st.write(recommendation)
-        # --- Target Leakage Detection ---
         st.subheader("Target Leakage Detection")
         numeric_columns = st.session_state['df'].select_dtypes(include=[np.number]).columns.tolist()
         target = st.selectbox("Select target column (for leakage check):", ["None"] + numeric_columns)
@@ -99,7 +91,6 @@ Outliers: {st.session_state['outlier_counts'].to_dict()}"""
             st.write(corr_with_target)
             st.write("Features with correlation > 0.8 may indicate potential leakage.")
 
-        # --- Data Repair ---
         st.subheader("Apply Data Repairs")
         drop_duplicates = st.checkbox("Drop duplicate rows?", value=False)
         missing_cols = st.session_state['missing'][st.session_state['missing'] > 0].index.tolist()
