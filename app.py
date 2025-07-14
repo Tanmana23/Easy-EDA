@@ -5,7 +5,7 @@ import requests
 import os
 
 st.set_page_config(page_title="Agentic Data Audit Bot", layout="wide")
-st.title("Agentic Data Audit Bot")
+st.title("Easy EDA Bot")
 def get_perplexity_recommendation(audit_summary):
     api_key = os.getenv("PPLX_API_KEY")
     url = "https://api.perplexity.ai/chat/completions"
